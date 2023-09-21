@@ -1,20 +1,35 @@
 import sqlite3
-import random
 
-conn = sqlite3.connect("vm.db")
+def resetUsed(dbName):
+    with sqlite3.connect(dbName) as resetConn:
+        resetCur = resetConn.cursor()
+        resetCur.execute("UPDATE Mockery SET Used = 0")
+        resetConn.commit()
 
-#sql = "CREATE TABLE Mockery (Insult VARCHAR(1000), Used INT);"
-sql = "select Insult from Mockery where Used = 0"
-cur = conn.cursor()
-cur.execute(sql)
+def addInsult(dbName, newInsult):
+    with sqlite3.connect(dbName) as addConn:
+        addCur = addConn.cursor()
+        addCur.execute(f"INSERT INTO Mockery (Insult, Used) VALUES ('{newInsult}', 0)")
+        addConn.commit()
 
-insultlist = cur.fetchall()
-insult = insultlist[random.randint(1, len(insultlist))]
+def deleteInsult(dbName, newInsult):
+    with sqlite3.connect(dbName) as addConn:
+        addCur = addConn.cursor()
+        addCur.execute(f"DELETE FROM Mockery WHERE Insult = '{newInsult}'")
+        addConn.commit()
 
-print(insult[0])
+def getInsult(dbName):
+    conn = sqlite3.connect(dbName)
+    sql = "select Insult from Mockery where Used = 0 ORDER BY RANDOM() LIMIT 1"
+    cur = conn.cursor()
+    cur.execute(sql)
+    insult = cur.fetchone()
+    print(insult[0])
+    updatesql = f"UPDATE Mockery SET Used = 1 where Insult = '{insult[0]}'"
+    cur.execute(updatesql)
+    conn.commit()
+    conn.close()
 
-updatesql = f"UPDATE Mockery SET Used = 1 where Insult = '{insult[0]}'"
-
-cur.execute(updatesql)
-conn.commit()
-conn.close()
+# resetUsed("vm.db")
+for x in range(30):
+    getInsult("vm.db")
